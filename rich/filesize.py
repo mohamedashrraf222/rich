@@ -79,10 +79,20 @@ def decimal(
         '30.00kB'
 
     """
-    return _to_str(
-        size,
-        ("kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"),
-        1000,
-        precision=precision,
-        separator=separator,
-    )
+    # Fast path for small sizes
+    if size == 1:
+        return "1 byte"
+    elif size < 1000:
+        return f"{size:,} bytes"
+
+    # Predefined tuple constant, reduces allocation per-call
+    suffixes = ("kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+    base = 1000
+    for i, suffix in enumerate(suffixes, 1):
+        unit = base ** (i + 1)
+        if size < unit:
+            value = base * size / unit
+            return f"{value:,.{precision}f}{separator}{suffix}"
+    # If size exceeds YB, return in largest unit
+    value = base * size / (base ** (len(suffixes) + 1))
+    return f"{value:,.{precision}f}{separator}{suffixes[-1]}"
