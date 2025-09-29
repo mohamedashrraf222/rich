@@ -23,21 +23,31 @@ def _to_str(
     precision: Optional[int] = 1,
     separator: Optional[str] = " ",
 ) -> str:
+    # Early exits for 1 and small numbers
     if size == 1:
         return "1 byte"
     elif size < base:
         return f"{size:,} bytes"
 
-    for i, suffix in enumerate(suffixes, 2):  # noqa: B007
-        unit = base**i
+    # Convert suffixes to tuple to allow O(1) indexing and avoid repeated power calculations
+    suffixes_tuple = tuple(suffixes)
+    n_suffixes = len(suffixes_tuple)
+
+    # Find the appropriate unit index
+    # Start from i=2 consistent with original enumerate(..., 2)
+    i = 2
+    unit = base ** i
+    for suffix in suffixes_tuple:
         if size < unit:
-            break
-    return "{:,.{precision}f}{separator}{}".format(
-        (base * size / unit),
-        suffix,
-        precision=precision,
-        separator=separator,
-    )
+            # Efficient calculation of value without unnecessary use of format() for a single parameter
+            value = base * size / unit
+            return f"{value:,.{precision}f}{separator}{suffix}"
+        i += 1
+        unit *= base  # next power, faster than base**i
+
+    # If size is extremely large, use the largest suffix
+    value = base * size / unit
+    return f"{value:,.{precision}f}{separator}{suffixes_tuple[-1]}"
 
 
 def pick_unit_and_suffix(size: int, suffixes: List[str], base: int) -> Tuple[int, str]:
