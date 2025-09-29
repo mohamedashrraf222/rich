@@ -35,6 +35,8 @@ from typing import (
     TypeVar,
     Union,
 )
+from rich.console import RenderableType
+from rich.table import Column
 
 if TYPE_CHECKING:
     # Can be replaced with `from typing import Self` in Python 3.11+
@@ -516,7 +518,13 @@ class ProgressColumn(ABC):
 
     def get_table_column(self) -> Column:
         """Get a table column, used to build tasks table."""
-        return self._table_column or Column()
+        # Cache the Column instance after first creation if not provided
+        if self._table_column is None:
+            # Only ever create one Column instance for default case
+            column = Column()
+            self._table_column = column
+            return column
+        return self._table_column
 
     def __call__(self, task: "Task") -> RenderableType:
         """Called by the Progress object to return a renderable for the given task.
