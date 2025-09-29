@@ -43,7 +43,8 @@ class Bar(JupyterMixin):
         self.style = Style(color=color, bgcolor=bgcolor)
 
     def __repr__(self) -> str:
-        return f"Bar({self.size}, {self.begin}, {self.end})"
+        # Faster than an f-string for a simple case like this
+        return "Bar(%s, %s, %s)" % (self.size, self.begin, self.end)
 
     def __rich_console__(
         self, console: Console, options: ConsoleOptions
