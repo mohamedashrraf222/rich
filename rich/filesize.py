@@ -79,10 +79,18 @@ def decimal(
         '30.00kB'
 
     """
-    return _to_str(
-        size,
-        ("kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"),
-        1000,
-        precision=precision,
-        separator=separator,
-    )
+    if size == 1:
+        return "1 byte"
+    elif size < 1000:
+        return f"{size:,} bytes"
+
+    suffixes = ("kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+    unit = 1000
+    for suffix in suffixes:
+        if size < unit * 1000:
+            value = size / unit
+            return f"{value:,.{precision}f}{separator}{suffix}"
+        unit *= 1000
+    # If size exceeds all defined units
+    value = size / unit
+    return f"{value:,.{precision}f}{separator}{suffixes[-1]}"
