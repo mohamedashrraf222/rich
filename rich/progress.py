@@ -35,6 +35,8 @@ from typing import (
     TypeVar,
     Union,
 )
+from rich.table import Column
+from rich.text import Text
 
 if TYPE_CHECKING:
     # Can be replaced with `from typing import Self` in Python 3.11+
@@ -855,9 +857,11 @@ class MofNCompleteColumn(ProgressColumn):
         """Show completed/total."""
         completed = int(task.completed)
         total = int(task.total) if task.total is not None else "?"
-        total_width = len(str(total))
+        total_str = str(total)
+        total_width = len(total_str)
+        completed_str = str(completed).zfill(total_width)
         return Text(
-            f"{completed:{total_width}d}{self.separator}{total}",
+            "".join((completed_str, self.separator, total_str)),
             style="progress.download",
         )
 
