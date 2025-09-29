@@ -35,6 +35,7 @@ from typing import (
     TypeVar,
     Union,
 )
+from rich.text import Text
 
 if TYPE_CHECKING:
     # Can be replaced with `from typing import Self` in Python 3.11+
@@ -693,8 +694,20 @@ class TimeElapsedColumn(ProgressColumn):
         elapsed = task.finished_time if task.finished else task.elapsed
         if elapsed is None:
             return Text("-:--:--", style="progress.elapsed")
-        delta = timedelta(seconds=max(0, int(elapsed)))
-        return Text(str(delta), style="progress.elapsed")
+        elapsed_seconds = int(elapsed)
+        if elapsed_seconds < 0:
+            elapsed_seconds = 0
+
+        # Avoid costly timedelta+str for small values by formatting manually < 24h
+        if elapsed_seconds < 86400:
+            hours, rem = divmod(elapsed_seconds, 3600)
+            minutes, seconds = divmod(rem, 60)
+            # str(hours) to avoid zero padding, matches Python's timedelta for <24h
+            formatted = f"{hours}:{minutes:02}:{seconds:02}"
+        else:
+            delta = timedelta(seconds=elapsed_seconds)
+            formatted = str(delta)
+        return Text(formatted, style="progress.elapsed")
 
 
 class TaskProgressColumn(TextColumn):
