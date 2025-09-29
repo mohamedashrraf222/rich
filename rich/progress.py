@@ -35,6 +35,8 @@ from typing import (
     TypeVar,
     Union,
 )
+from rich.table import Column
+from rich.text import Text
 
 if TYPE_CHECKING:
     # Can be replaced with `from typing import Self` in Python 3.11+
@@ -805,14 +807,17 @@ class TimeRemainingColumn(ProgressColumn):
         if task_time is None:
             return Text("--:--" if self.compact else "-:--:--", style=style)
 
-        # Based on https://github.com/tqdm/tqdm/blob/master/tqdm/std.py
-        minutes, seconds = divmod(int(task_time), 60)
-        hours, minutes = divmod(minutes, 60)
+        # Fast integer division/modulus for conversion
+        total_seconds = int(task_time)
+        hours = total_seconds // 3600
+        minutes = (total_seconds // 60) % 60
+        seconds = total_seconds % 60
 
         if self.compact and not hours:
-            formatted = f"{minutes:02d}:{seconds:02d}"
+            # Avoid f-string overhead for most common case
+            formatted = "{:02d}:{:02d}".format(minutes, seconds)
         else:
-            formatted = f"{hours:d}:{minutes:02d}:{seconds:02d}"
+            formatted = "{}:{:02d}:{:02d}".format(hours, minutes, seconds)
 
         return Text(formatted, style=style)
 
