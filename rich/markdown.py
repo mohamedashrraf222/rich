@@ -230,9 +230,9 @@ class TableElement(MarkdownElement):
         self.body: TableBodyElement | None = None
 
     def on_child_close(self, context: MarkdownContext, child: MarkdownElement) -> bool:
-        if isinstance(child, TableHeaderElement):
+        if type(child) is TableHeaderElement:
             self.header = child
-        elif isinstance(child, TableBodyElement):
+        elif type(child) is TableBodyElement:
             self.body = child
         else:
             raise RuntimeError("Couldn't process markdown table.")
